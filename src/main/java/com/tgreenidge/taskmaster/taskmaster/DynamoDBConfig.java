@@ -1,9 +1,13 @@
 package com.tgreenidge.taskmaster.taskmaster;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import org.socialsignin.spring.data.dynamodb.repository.config.EnableDynamoDBRepositories;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -24,19 +28,38 @@ public class DynamoDBConfig {
     private String amazonAWSSecretKey;
 
     @Bean
-    public AmazonDynamoDB amazonDynamoDB() {
-        AmazonDynamoDB amazonDynamoDB
-                = new AmazonDynamoDBClient(amazonAWSCredentials());
+    public AmazonDynamoDB amazonDynamoDB(){
+        AmazonDynamoDB amazonDynamoDB;
 
-        if (!StringUtils.isEmpty(amazonDynamoDBEndpoint)) {
-            amazonDynamoDB.setEndpoint(amazonDynamoDBEndpoint);
+        if (amazonDynamoDBEndpoint.isEmpty()) {
+            amazonDynamoDB = AmazonDynamoDBClientBuilder.standard()
+                    .withCredentials(credentialsProvider())
+                    .withRegion(Regions.US_EAST_2)
+                    .build();
+            System.out.println("connecting to remote dynamo in region: " + Regions.US_EAST_2);
+        } else {
+            amazonDynamoDB = AmazonDynamoDBClientBuilder.standard()
+                    .withEndpointConfiguration(
+                            new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "us-east-2"))
+                    .build();
+            System.out.println("connecting to dynamo at endpoint: "+ amazonDynamoDBEndpoint);
         }
 
         return amazonDynamoDB;
     }
 
-    @Bean
-    public AWSCredentials amazonAWSCredentials() {
-        return new BasicAWSCredentials(amazonAWSAccessKey, amazonAWSSecretKey);
+
+    public AWSCredentialsProvider credentialsProvider() {
+        return new AWSCredentialsProvider() {
+            @Override
+            public AWSCredentials getCredentials() {
+                return new BasicAWSCredentials(amazonAWSAccessKey, amazonAWSSecretKey);
+            }
+
+            @Override
+            public void refresh() {
+
+            }
+        };
     }
 }
