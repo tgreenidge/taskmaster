@@ -10,5 +10,5 @@ import java.util.Optional;
 @EnableScan
 public interface TaskRepository extends CrudRepository<Task, String> {
     Optional<Task> findById(String id);
-    List<Task> findAll();
+//    List<Task> findAll();
 }

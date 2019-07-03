@@ -20,8 +20,8 @@ public class TaskController {
 
     @RequestMapping(value = "/tasks", method = RequestMethod.GET)
     public @ResponseBody ResponseEntity<List<Task>> getTasks() {
-        List<Task> tasks = taskRepository.findAll();
-        return new ResponseEntity<List<Task>>(tasks, HttpStatus.OK);
+        Iterable<Task> tasks = taskRepository.findAll();
+        return new ResponseEntity(tasks, HttpStatus.OK);
     }
 
 //    @RequestMapping(value = "/tasks", method = RequestMethod.POST)
